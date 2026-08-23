@@ -10,3 +10,4 @@ config.json
 # AUTO-IGNORE-LARGE-FILES (>5MB) â€” managed by github-commit-push-all
 # github-commit-push-all: large files (>5MB) — auto-managed
 
+# auto-managed: files > 5MB

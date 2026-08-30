@@ -11,3 +11,5 @@ config.json
 # github-commit-push-all: large files (>5MB) — auto-managed
 
 # auto-managed: files > 5MB
+
+# Auto-managed large files (>5MB)

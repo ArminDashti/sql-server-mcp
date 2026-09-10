@@ -7,9 +7,10 @@ dist/
 config.json
 *.exe
 
-# AUTO-IGNORE-LARGE-FILES (>5MB) â€” managed by github-commit-push-all
-# github-commit-push-all: large files (>5MB) — auto-managed
+# AUTO-IGNORE-LARGE-FILES (>5MB) Ã¢â‚¬â€ managed by github-commit-push-all
+# github-commit-push-all: large files (>5MB) â€” auto-managed
 
 # auto-managed: files > 5MB
 
 # Auto-managed large files (>5MB)
+# === auto: large files (>5MB) ===

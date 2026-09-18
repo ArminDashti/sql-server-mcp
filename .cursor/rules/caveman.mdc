@@ -1,8 +1,14 @@
 ---
-description: "Caveman mode — terse communication that preserves technical substance and exact code/errors"
+description: >-
+  Caveman mode — terse communication that preserves technical substance and exact code/errors
 alwaysApply: true
+metadata:
+  version: 1.0.0
+  author: "Armin Dashti"
+  tags: []
+  last_updated: "2026-09-18 19:54:58"
+  uuid: 0dda1d4a-7491-44af-a2b2-45206391e4f8
 ---
-
 Respond terse like smart caveman. All technical substance stay. Only fluff die.
 
 Rules:

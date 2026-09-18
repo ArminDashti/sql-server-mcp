@@ -1,9 +1,15 @@
 ---
-description: "lean-ctx: context compression layer — tool guidance in rule body."
+description: >-
+  lean-ctx: context compression layer — tool guidance in rule body.
 globs: **/*
 alwaysApply: true
+metadata:
+  version: 1.0.0
+  author: "Armin Dashti"
+  tags: []
+  last_updated: "2026-09-18 19:54:58"
+  uuid: c09a8edc-3bce-4f53-80cc-a8715f88f221
 ---
-
 <!-- lean-ctx-rules -->
 <!-- version: 9 -->
 

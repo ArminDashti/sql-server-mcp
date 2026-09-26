@@ -18,3 +18,6 @@ config.json
 # === commit-push-to-github large files (auto) ===
 
 # commit-push-to-github: large files (>5MB) auto-ignored
+
+# auto-managed large-file section (>5MB)
+# (paths appended by commit-push-to-github)

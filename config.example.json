@@ -1,0 +1,10 @@
+{
+  "server": "localhost",
+  "port": 1433,
+  "database": "MyDatabase",
+  "username": "sa",
+  "password": "your-password-here",
+  "trustServerCertificate": true,
+  "encrypt": true,
+  "logsDir": "~/sql-server-mcp"
+}

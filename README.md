@@ -1,33 +1,64 @@
 # SQL Server MCP Server
 
-An [MCP](https://modelcontextprotocol.io) server that connects agents to Microsoft SQL Server with structured and raw query tools. Every agent query input is logged to `~/sql-server-mcp/<MMDD>-<HHmmss>.log`.
+Node.js TypeScript MCP server for structured, parameterized SQL Server access.
+It uses the `mssql` driver (Tedious) and communicates over stdio. Each tool call
+input and generated statement is logged under `logsDir`.
 
 ## Tools
 
-| Tool | Description |
-|------|-------------|
-| `query` | Structured SELECT with `select`, `where`, `row_limit`, `group_by`, `order_by`, `count`, and optional CSV export |
-| `raw_query` | Execute any SQL the agent needs, with optional named parameters |
+| Tool | Description | Example arguments |
+|---|---|---|
+| `list_objects` | Search tables, views, procedures, functions, and other objects. | `{"schema":"sales","type":"table","search":"Order","limit":50}` |
+| `test_connection` | Test connectivity; return success and server/database identity. | `{}` |
+| `insert` | Insert one parameterized row using `row` or `columns` + `values`. | `{"table":"dbo.Customers","row":{"Name":"Ada","Active":true}}` |
+| `update` | Update rows with `set` and a required `where`; use `force:true` to update all rows. | `{"table":"dbo.Customers","set":{"Active":false},"where":{"Id":17}}` |
+| `delete` | Delete rows with a required `where`; use `force:true` to delete all rows. | `{"table":"dbo.Customers","where":{"Id":17}}` |
+| `select` | Select columns with optional filters, grouping, ordering, and TOP. | `{"table":"dbo.Customers","columns":["Id","Name"],"where":{"Active":true},"orderBy":[{"column":"Name","direction":"ASC"}],"top":50}` |
+| `info` | Return server version/edition, database settings, collation, and file sizes. | `{}` |
+| `object_info` | Inspect columns, indexes, routine parameters/definition, and foreign keys. | `{"objectName":"dbo.usp_SaveOrder"}` |
+| `deep_search` | Rank matches across object, schema, column, parameter, and definition metadata. | `{"search":"Customer","limit":25}` |
 
-## Prerequisites
+`where` accepts a map of column names to values (equality), or conditions such
+as `{"Status":{"operator":"in","value":["Open","Pending"]}}`.
+Supported operators: `eq`, `ne`, `gt`, `gte`, `lt`, `lte`, `like`, `notLike`,
+`in`, `notIn`, `isNull`, and `isNotNull`. Values are bound parameters; table,
+schema, and column names are quoted identifiers. No arbitrary SQL argument is
+provided. Mutations without a non-empty `where` are refused unless `force:true`.
+
+## Requirements and setup
 
 - Node.js 18+
-- Access to a SQL Server instance
-
-## Setup
+- Network access to a SQL Server instance
 
 ```bash
 npm install
 cp config.example.json config.json
-# Edit config.json with your server, database, username, and password
+# Edit config.json with connection credentials
 npm run build
+npm test
+npm start
 ```
+
+Build output: `dist/index.js` (stdio MCP server).
 
 ## Configuration
 
-### `config.json`
+The server loads `SQL_SERVER_CONFIG` (default: `./config.json`). Environment
+variables override file values.
 
-Path via `SQL_SERVER_CONFIG` (default: `./config.json`):
+| `config.json` field | Environment variable | Description |
+|---|---|---|
+| `server` | `SQL_SERVER` | SQL Server host name or IP |
+| `port` | `SQL_PORT` | Server port (default: `1433`) |
+| `database` | `SQL_DATABASE` | Database name |
+| `username` | `SQL_USERNAME` | SQL login username |
+| `password` | `SQL_PASSWORD` | SQL login password |
+| `trustServerCertificate` | `SQL_TRUST_SERVER_CERTIFICATE` | Trust server certificate (default: `true`) |
+| `encrypt` | `SQL_ENCRYPT` | Encrypt the connection (default: `true`) |
+| `logsDir` | `SQL_LOGS_DIR` | Tool-call log directory (default: `~/sql-server-mcp`) |
+| — | `SQL_SERVER_CONFIG` | Path to the JSON configuration file |
+
+Example configuration:
 
 ```json
 {
@@ -38,63 +69,15 @@ Path via `SQL_SERVER_CONFIG` (default: `./config.json`):
   "password": "your-password-here",
   "trustServerCertificate": true,
   "encrypt": true,
-  "logsDir": "~/sql-server-mcp",
-  "csvDir": "~/sql-server-mcp/csv"
+  "logsDir": "~/sql-server-mcp"
 }
 ```
 
-| Field | Required | Description |
-|-------|----------|-------------|
-| `server` | Yes | SQL Server host name or IP |
-| `port` | No | SQL Server port (default: `1433`) |
-| `database` | Yes | Database name |
-| `username` | Yes | SQL login username |
-| `password` | Yes | SQL login password |
-| `trustServerCertificate` | No | Trust self-signed certs (default: `true`) |
-| `encrypt` | No | Encrypt connection (default: `true`) |
-| `logsDir` | No | Query log directory (default: `~/sql-server-mcp`) |
-| `csvDir` | No | CSV export directory (default: `~/sql-server-mcp/csv`) |
+Every tool call logs its timestamp, tool name, complete input, generated SQL,
+and row count in a file named `MMDD-HHmmss.log` under `logsDir`. Log values
+may contain application data; protect the directory accordingly.
 
-Environment variables override `config.json`:
-
-| Variable | Description |
-|----------|-------------|
-| `SQL_SERVER` | Server host |
-| `SQL_PORT` | Server port |
-| `SQL_DATABASE` | Database name |
-| `SQL_USERNAME` | Username |
-| `SQL_PASSWORD` | Password |
-| `SQL_SERVER_CONFIG` | Path to config file |
-| `SQL_TRUST_SERVER_CERTIFICATE` | `true` or `false` |
-| `SQL_ENCRYPT` | `true` or `false` |
-| `SQL_LOGS_DIR` | Log directory |
-| `SQL_CSV_DIR` | CSV export directory |
-
-## Query logs
-
-Every tool call writes a log file under `~/sql-server-mcp/` named like `0623-151833.log` (month-day and time).
-
-Example log:
-
-```
-timestamp: 2026-06-23T15:18:33.000Z
-tool: query
-
-input:
-{
-  "table": "Users",
-  "select": ["Id", "Name"],
-  "where": "IsActive = 1",
-  "row_limit": 100
-}
-
-sql:
-SELECT TOP (100) [Id], [Name] FROM [Users] WHERE IsActive = 1
-
-row_count: 42
-```
-
-## Cursor Configuration
+## Cursor configuration
 
 ```json
 {
@@ -110,78 +93,15 @@ row_count: 42
 }
 ```
 
-Or pass credentials via environment variables:
-
-```json
-{
-  "mcpServers": {
-    "sql-server": {
-      "command": "node",
-      "args": ["C:/Users/armin/GitHub/sql-server-mcp/dist/index.js"],
-      "env": {
-        "SQL_SERVER": "localhost",
-        "SQL_DATABASE": "MyDatabase",
-        "SQL_USERNAME": "sa",
-        "SQL_PASSWORD": "your-password"
-      }
-    }
-  }
-}
-```
-
-## Usage Examples
-
-### Structured query
-
-```json
-{
-  "table": "Orders",
-  "select": ["OrderId", "CustomerId", "Total"],
-  "where": "OrderDate >= '2026-01-01'",
-  "row_limit": 50,
-  "order_by": [{ "column": "OrderDate", "direction": "DESC" }],
-  "store_on_disk_as_csv": true
-}
-```
-
-### Count
-
-```json
-{
-  "table": "Orders",
-  "where": "Status = 'Pending'",
-  "count": true
-}
-```
-
-### Group by with count
-
-```json
-{
-  "table": "Orders",
-  "group_by": ["Status"],
-  "count": true,
-  "order_by": [{ "column": "Status" }]
-}
-```
-
-### Raw query
-
-```json
-{
-  "sql": "SELECT TOP 10 * FROM dbo.Products WHERE CategoryId = @categoryId",
-  "parameters": {
-    "categoryId": 5
-  }
-}
-```
+Alternatively, provide `SQL_SERVER`, `SQL_DATABASE`, `SQL_USERNAME`, and
+`SQL_PASSWORD` in the MCP server's `env` object.
 
 ## Development
 
 ```bash
-npm run dev    # Run with tsx (stdio transport)
-npm run build  # Compile to dist/
-npm start      # Run compiled server
+npm run dev       # Run TypeScript over stdio
+npm run build     # Compile to dist/
+npm test          # Build and verify the exact nine registered tools
 ```
 
 ## License

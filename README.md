@@ -73,6 +73,52 @@ Example configuration:
 }
 ```
 
+## Windows x64 scripts
+
+`scripts/` builds the server into one self-contained `sql-server-mcp.exe` (Node SEA
+via `@yao-pkg/pkg`, entry point bundle from `esbuild`) and installs it under
+`%LOCALAPPDATA%\SqlServerMcp`.
+
+| Script | Purpose |
+|---|---|
+| `scripts/installer-win-x64.ps1` | Build, stop any running instance, install/update the exe, seed `Settings.json` + `Data.db`, register the folder on the user PATH, map `-LocalAddress` into the hosts file (elevates automatically) |
+| `scripts/Remove-win-x64.ps1` | Stop the app, delete the install folder, drop the PATH entry, clear `SQL_SERVER_CONFIG`, remove the managed hosts entries |
+| `scripts/test-win-x64.ps1` | Offline lifecycle test: build, install, MCP handshake, update, remove, PATH/hosts assertions |
+| `scripts/test-hosts-admin.ps1` | Hosts-file test for an elevated prompt (backs up and restores the hosts file) |
+
+```powershell
+# install or update (rebuilds first)
+powershell -ExecutionPolicy Bypass -File .\scripts\installer-win-x64.ps1
+
+# install and map the local name sqlserver.local to 127.0.0.1
+powershell -ExecutionPolicy Bypass -File .\scripts\installer-win-x64.ps1 -LocalAddress sqlserver.local
+
+# uninstall everything this project installed
+powershell -ExecutionPolicy Bypass -File .\scripts\Remove-win-x64.ps1 -LocalAddress sqlserver.local
+
+# prove the whole lifecycle
+powershell -ExecutionPolicy Bypass -File .\scripts\test-win-x64.ps1
+```
+
+Useful switches: `-SkipBuild` (install the existing `dist\sql-server-mcp.exe`),
+`-InstallRoot`, `-SettingsPath`, `-SkipPath`, `-KeepSettings` (uninstall keeps
+`Settings.json`/`Data.db`), `-Quiet`. Building needs Node.js 22+ on the PATH
+(`@yao-pkg/pkg` produces a Node 24 runtime); the installer fetches the Node base
+binary on first use and needs Administrator only for the hosts file.
+
+Point an MCP client at the installed executable:
+
+```json
+{
+  "mcpServers": {
+    "sql-server": {
+      "command": "C:/Users/<you>/AppData/Local/SqlServerMcp/sql-server-mcp.exe",
+      "env": { "SQL_SERVER_CONFIG": "C:/Users/<you>/AppData/Local/SqlServerMcp/Settings.json" }
+    }
+  }
+}
+```
+
 Every tool call logs its timestamp, tool name, complete input, generated SQL,
 and row count in a file named `MMDD-HHmmss.log` under `logsDir`. Log values
 may contain application data; protect the directory accordingly.

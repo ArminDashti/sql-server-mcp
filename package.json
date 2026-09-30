@@ -9,7 +9,8 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
     "dev": "tsx src/index.ts",
-    "test": "npm run build && node dist/self-check.js"
+    "test": "npm run build && node dist/self-check.js",
+    "package:win-x64": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/installer-win-x64.ps1"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.16.0",
@@ -19,6 +20,8 @@
   "devDependencies": {
     "@types/mssql": "^9.1.7",
     "@types/node": "^22.15.30",
+    "@yao-pkg/pkg": "^6.23.0",
+    "esbuild": "^0.25.0",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3"
   }

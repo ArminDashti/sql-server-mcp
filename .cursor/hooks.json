@@ -1,3 +1,22 @@
 {
-  "hooks": {}
+    "hooks":  {
+                  "stop":  [
+                               {
+                                   "author":  "Armin Dashti",
+                                   "category":  "build",
+                                   "command":  "powershell -NoProfile -ExecutionPolicy Bypass -File .cursor/hooks/refresh-check.ps1",
+                                   "last_updated":  "2026-10-17 12:30:00",
+                                   "loop_limit":  3,
+                                   "tags":  [
+                                                "refresh",
+                                                "rebuild",
+                                                "verify"
+                                            ],
+                                   "timeout":  15,
+                                   "uuid":  "3b8d5e21-6a4f-4c9b-8e17-9f2a0c4d6b58",
+                                   "version":  "1.0.0"
+                               }
+                           ]
+              },
+    "version":  1
 }

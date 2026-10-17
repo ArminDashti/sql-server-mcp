@@ -1,0 +1,20 @@
+---
+description: >-
+  Mandatory: after any code/config/Dockerfile/asset change, run the
+  refresh-after-changes skill (refresh + verify + report) before finishing
+alwaysApply: true
+metadata:
+  version: 1.0.0
+  author: "Armin Dashti"
+  category: coding
+  tags: [build, rebuild, refresh, verify]
+  last_updated: "2026-10-17 12:30:00"
+  uuid: 7c3e9a52-1f4b-4d8e-9a6c-2b5d0e8f1a37
+---
+# Refresh after changes (mandatory)
+
+- After ANY change to code, config, Dockerfiles/compose files, scripts or assets, and before finishing the turn, you MUST read and follow `.cursor/skills/refresh-after-changes/SKILL.md`: rebuild/restart/redeploy-local the affected app(s), verify, and report what was refreshed and how.
+- A task is NOT done until the change is live and verified. A passing build alone is not enough when the app is meant to be running.
+- If this repo has a more specific refresh rule (e.g. a restart/rebuild rule), follow that rule for the how; this rule only makes the refresh mandatory.
+- Skip only when the change is docs/comments-only (`*.md`, comments, `.cursor/**`), and say "Refresh skipped: docs-only".
+- A `stop` hook (`.cursor/hooks/refresh-check.ps1`) re-prompts you if non-doc changes were left unrefreshed.

@@ -21,3 +21,9 @@ config.json
 
 # auto-managed large-file section (>5MB)
 # (paths appended by commit-push-to-github)
+.agents/
+.cursor/mcp.json
+.cursor/hooks/
+.cursor/hooks.json
+.cursor/agents/
+.cursor/tools/
